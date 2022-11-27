@@ -6,9 +6,11 @@ class Validator {
   }
 
   getHorizontalNumberLines(sudoku) {
+    sudoku = sudoku.replace(/\|/g, '')
     const extractHorizontalLines = sudoku.split('\n');
-    const horizontalCharArray = extractHorizontalLines.map(line => line.split(''));
-    const horizontalNumCharArray = horizontalCharArray.map(charLine => charLine.filter(Number)).filter(array => array.length);
+    const horizontalCharArray = extractHorizontalLines.map(line => line.split(' '));
+    const horizontalNumCharArray = horizontalCharArray.map(charLine => charLine.filter(char => (/\d+/g).test(char))
+    ).filter(array => array.length);
     const horizontalNumArrays = horizontalNumCharArray.map(line => line.map(no => +no));
     return horizontalNumArrays;
   }
@@ -42,17 +44,42 @@ class Validator {
   validateLines(linesArray) {
     for (let index = 0; index < linesArray.length; index++) {
       const line = linesArray[index];
-      if (line.sort().toString() !== '1,2,3,4,5,6,7,8,9') { return false; }
+      if (line.sort((a, b) => a - b).toString() !== '1,2,3,4,5,6,7,8,9') { return false; }
+    }
+    return true;
+  }
+
+  validateNotCompleteLines(linesArray) {
+    for (let index = 0; index < linesArray.length; index++) {
+      const line = linesArray[index];
+      const sortedLine = line.sort((a, b) => a - b);
+      const duplicateRemovedLine = new Set(sortedLine);
+      const checkBelowTen = sortedLine.every(no => no < 10);
+      const checkNoDuplicate = sortedLine.reduce((t, v) => t + v) === [...duplicateRemovedLine].reduce((t, v) => t + v);
+      if (!checkBelowTen | !checkNoDuplicate) {
+        return false;
+      }
     }
     return true;
   }
 
   validate(sudoku) {
     // Your code here
-    console.log(sudoku);
     const horizontalNumArrays = this.getHorizontalNumberLines(sudoku);
     const verticalNumArrays = this.getVerticalNumberLines(horizontalNumArrays);
     const sudokuSubBoxes = this.getSudokuSubBoxes(horizontalNumArrays);
+
+    if (sudoku.includes('0')) {
+      const horizontal = this.validateNotCompleteLines(horizontalNumArrays);
+      const vertical = this.validateNotCompleteLines(verticalNumArrays);
+      const box = this.validateNotCompleteLines(sudokuSubBoxes);
+      if (horizontal && vertical && box) {
+        return 'Sudoku is valid but incomplete.';
+      } else {
+        return 'Sudoku is invalid.';
+      }
+
+    }
 
     const hLineValidate = this.validateLines(horizontalNumArrays);
     const vLineValidate = this.validateLines(verticalNumArrays);

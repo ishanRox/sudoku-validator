@@ -23,8 +23,8 @@ describe('invalid sudoku', () => {
     __dirname + '/fixtures/invalid_due_to_forbidden_characters.sudoku'
   ].forEach(path => {
     test('recognizes invalid sudoku', async () => {
-      const sudoku = await fs.readFile(path)
-
+      const sudoku = await fs.readFile(path);
+      console.log(path)
       expect(Validator.validate(sudoku.toString())).toBe('Sudoku is invalid.')
     })
   })
